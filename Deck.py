@@ -3,7 +3,7 @@ import random
 
 
 class Deck:
-    __slots__ = ['_contents', '_is_flipped']
+    __slots__ = ['_contents', '_is_flipped', '_is_clickable']
 
     def __init__(self):
         self._contents = [Card("Hearts", "Ace"), Card("Hearts", "2"), Card("Hearts", "3"),
@@ -25,15 +25,28 @@ class Deck:
                           Card("Spades", "10"), Card("Spades", "Jack"), Card("Spades", "Queen"),
                           Card("Spades", "King")]
         self._is_flipped = False
+        self._is_clickable = True
 
     def __str__(self):
-        retArray = ""
+        ret_array = ""
         for cards in self._contents:
-            retArray += str(cards) + ", "
-        return retArray
+            ret_array += str(cards) + ", "
+        return ret_array
 
     def shuffle(self):
         random.shuffle(self._contents)
 
     def pop(self):
         return self._contents.pop()
+
+    def is_flipped(self):
+        return self._is_flipped
+
+    def set_flipped(self, flipped: bool):
+        self._is_flipped = flipped
+
+    def is_clickable(self):
+        return self._is_clickable
+
+    def set_clickable(self, clickable: bool):
+        self._is_clickable = clickable
