@@ -1,7 +1,6 @@
 import pygame
 import time
 
-
 from Deck import Deck
 from Hand import Hand
 from Player import Player
@@ -19,7 +18,8 @@ RESULTSFONT = pygame.font.SysFont("timesnewroman", 150)
 TITLEFONT = pygame.font.SysFont("timesnewroman", 80)
 
 
-def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stand_button, stand):
+def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stand_button, stand, player, current_bet,
+              add_bet_button, subtract_bet_button):
     WIN.blit(BG, (0, 0))
 
     time_text = FONT.render(f"Time: {round(elapsed_time)}s", 1, "white")
@@ -29,6 +29,12 @@ def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, s
     deck_image = pygame.transform.scale(deck_image, (150, 250))
 
     WIN.blit(deck_image, deck_rect)
+
+    chips_text = FONT.render("Chips: " + str(player.get_chips()), 1, "white")
+    WIN.blit(chips_text, (WIDTH / 2 - chips_text.get_width() / 2, 150))
+
+    current_bet_text = FONT.render("Current Bet: " + str(current_bet), 1, "white")
+    WIN.blit(current_bet_text, (WIDTH / 2 - current_bet_text.get_width() / 2, 200))
 
     if flipped_deck:
         if not stand:
@@ -47,15 +53,26 @@ def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, s
         stay_text = FONT.render('Stay', True, 'white')
         pygame.draw.rect(WIN, (180, 180, 180), stand_button)
         WIN.blit(stay_text, (stand_button.x + 23, stand_button.y + 10))
+    else:
+        add_bet_text = FONT.render('Add to Bet', True, 'white')
+        pygame.draw.rect(WIN, (180, 180, 180), add_bet_button)
+        WIN.blit(add_bet_text, (add_bet_button.x + 23, add_bet_button.y + 10))
+
+        subtract_bet_text = FONT.render('Subtract Bet', True, 'white')
+        pygame.draw.rect(WIN, (180, 180, 180), subtract_bet_button)
+        WIN.blit(subtract_bet_text, (subtract_bet_button.x + 23, subtract_bet_button.y + 10))
 
     pygame.display.update()
 
 
-def draw_menu(play_button, quit_button):
+def draw_menu(play_button, quit_button, player):
     WIN.blit(BG, (0, 0))
 
     title_text = TITLEFONT.render("BlackJack", 1, "white")
     WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 10))
+
+    chips_text = FONT.render("Chips: " + str(player.get_chips()), 1, "white")
+    WIN.blit(chips_text, (WIDTH / 2 - chips_text.get_width() / 2, 100))
 
     play_text = FONT.render('Play', True, 'white')
     pygame.draw.rect(WIN, (180, 180, 180), play_button)
@@ -75,9 +92,11 @@ def main():
     clock = pygame.time.Clock()
     start_time = time.time()
 
-    stand_button = pygame.Rect(650, 400, 100, 60)
+    stand_button = pygame.Rect(700, 400, 100, 60)
     play_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2 - 100, 100, 60)
     quit_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2, 100, 60)
+    add_bet_button = pygame.Rect(WIDTH / 2 + 150, 150, 170, 60)
+    subtract_bet_button = pygame.Rect(WIDTH / 2 + 150, 250, 190, 60)
 
     deck_image = pygame.image.load('images/deck.png').convert()
     deck_image = pygame.transform.scale(deck_image, (150, 250))
@@ -111,13 +130,15 @@ def main():
                         menu = False
                         break
 
-            draw_menu(play_button, quit_button)
+            draw_menu(play_button, quit_button, player_one)
 
         deck = Deck()
         deck.shuffle()
 
         player_hand = Hand(deck)
         dealer_hand = Hand(deck)
+
+        current_bet = 10
 
         while in_game:
             clock.tick(60)
@@ -138,53 +159,68 @@ def main():
                             if player_hand.get_value() == 21:
                                 # auto win game
                                 end_text = "Win"
+                                player_one.gain_chips(current_bet)
                                 in_game = False
                                 draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
-                                          stand_button, False)
+                                          stand_button, False, player_one, current_bet, add_bet_button,
+                                          subtract_bet_button)
                                 break
                         else:
                             player_hand.hit(deck)
                             draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
-                                      stand_button, False)
+                                      stand_button, False, player_one, current_bet, add_bet_button, subtract_bet_button)
                             if player_hand.get_value() == 21:
                                 # auto win game
                                 end_text = "Win"
+                                player_one.gain_chips(current_bet)
                                 in_game = False
                                 break
                             elif player_hand.get_value() > 21:
                                 # auto lose game
                                 end_text = "Lose"
+                                player_one.lose_chips(current_bet)
                                 in_game = False
                                 break
+                    elif (add_bet_button.collidepoint(x, y) and not deck.is_flipped() and current_bet + 10 <=
+                          player_one.get_chips()):
+                        current_bet += 10
+                    elif subtract_bet_button.collidepoint(x, y) and not deck.is_flipped() and current_bet - 10 >= 10:
+                        current_bet -= 10
                     elif stand_button.collidepoint(x, y) and deck.is_flipped():
                         deck.set_clickable(False)
                         draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button,
-                                  True)
+                                  True, player_one, current_bet, add_bet_button, subtract_bet_button)
                         pygame.time.wait(1000)
                         while dealer_hand.get_value() < 17:
                             dealer_hand.hit(deck)
                             draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
-                                      stand_button, True)
+                                      stand_button, True, player_one, current_bet, add_bet_button, subtract_bet_button)
                             pygame.time.wait(1000)
                         if player_hand.get_value() <= dealer_hand.get_value() <= 21:
                             end_text = "Lose"
+                            player_one.lose_chips(current_bet)
                             in_game = False
                             break
                         else:
                             end_text = "Win"
+                            player_one.gain_chips(current_bet)
                             in_game = False
                             break
             if not in_game:
+                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, True,
+                          player_one, current_bet, add_bet_button, subtract_bet_button)
                 end_text = RESULTSFONT.render(end_text, True, 'green')
-                results_rect = pygame.Rect(WIDTH/2 - (end_text.get_width() + 50)/2, HEIGHT/2 - end_text.get_height()/2,
+                results_rect = pygame.Rect(WIDTH / 2 - (end_text.get_width() + 50) / 2,
+                                           HEIGHT / 2 - end_text.get_height() / 2,
                                            end_text.get_width() + 50, end_text.get_height())
                 pygame.draw.rect(WIN, (180, 180, 180), results_rect)
-                WIN.blit(end_text, (WIDTH/2 - end_text.get_width()/2, HEIGHT/2 - end_text.get_height()/2))
+                WIN.blit(end_text, (WIDTH / 2 - end_text.get_width() / 2, HEIGHT / 2 - end_text.get_height() / 2))
                 pygame.display.update()
                 pygame.time.wait(3000)
                 pygame.event.clear(pygame.MOUSEBUTTONDOWN)
             else:
-                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
+                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False,
+                          player_one, current_bet, add_bet_button, subtract_bet_button)
 
     pygame.quit()
 
