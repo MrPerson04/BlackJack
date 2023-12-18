@@ -1,4 +1,4 @@
-from Deck import Deck
+from BlackJackLib.Deck import Deck
 
 class Hand:
     def __init__(self, deck: Deck):

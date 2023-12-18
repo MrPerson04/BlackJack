@@ -2,9 +2,9 @@ import pygame
 import time
 import pickle
 
-from Deck import Deck
-from Hand import Hand
-from Player import Player
+from BlackJackLib.Deck import Deck
+from BlackJackLib.Hand import Hand
+from BlackJackLib.Player import Player
 
 pygame.font.init()
 

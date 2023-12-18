@@ -1,4 +1,4 @@
-from Card import Card
+from BlackJackLib.Card import Card
 import random
 
 
