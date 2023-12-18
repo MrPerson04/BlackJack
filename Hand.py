@@ -70,3 +70,6 @@ class Hand:
             total -= 10
             numAces -= 1
         return total
+
+    def get_first_card(self):
+        return self._contents[0]

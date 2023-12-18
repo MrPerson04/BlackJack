@@ -1,8 +1,10 @@
 import pygame
 import time
 
+
 from Deck import Deck
 from Hand import Hand
+from Player import Player
 
 pygame.font.init()
 
@@ -10,7 +12,7 @@ WIDTH, HEIGHT = 1000, 800
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("BlackJack")
 
-BG = pygame.transform.scale(pygame.image.load("background.jpg"), (WIDTH, HEIGHT))
+BG = pygame.transform.scale(pygame.image.load("images/background.jpg"), (WIDTH, HEIGHT))
 
 FONT = pygame.font.SysFont("timesnewroman", 30)
 RESULTSFONT = pygame.font.SysFont("timesnewroman", 150)
@@ -23,15 +25,15 @@ def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, s
     time_text = FONT.render(f"Time: {round(elapsed_time)}s", 1, "white")
     WIN.blit(time_text, (10, 10))
 
-    deck_image = pygame.image.load('deck.png').convert()
+    deck_image = pygame.image.load('images/deck.png').convert()
     deck_image = pygame.transform.scale(deck_image, (150, 250))
 
     WIN.blit(deck_image, deck_rect)
 
     if flipped_deck:
         if not stand:
-            dealer_text = FONT.render(str(dealer_hand._contents[0]) + ", ?", 1, "white")
-            dealer_value_text = FONT.render("Value: " + str(dealer_hand._contents[0].get_value()), 1, "white")
+            dealer_text = FONT.render(str(dealer_hand.get_first_card()) + ", ?", 1, "white")
+            dealer_value_text = FONT.render("Value: " + str(dealer_hand.get_first_card().get_value()), 1, "white")
         else:
             dealer_text = FONT.render(str(dealer_hand), 1, "white")
             dealer_value_text = FONT.render("Value: " + str(dealer_hand.get_value()), 1, "white")
@@ -77,11 +79,13 @@ def main():
     play_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2 - 100, 100, 60)
     quit_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2, 100, 60)
 
-    deck_image = pygame.image.load('deck.png').convert()
+    deck_image = pygame.image.load('images/deck.png').convert()
     deck_image = pygame.transform.scale(deck_image, (150, 250))
     # Create a rect with the size of the image.
     deck_rect = deck_image.get_rect()
     deck_rect.center = (WIDTH / 2, HEIGHT / 2)
+
+    player_one = Player()
 
     while run:
         in_game = True
@@ -157,12 +161,12 @@ def main():
                         draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button,
                                   True)
                         pygame.time.wait(1000)
-                        while (dealer_hand.get_value() < 17):
+                        while dealer_hand.get_value() < 17:
                             dealer_hand.hit(deck)
                             draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
                                       stand_button, True)
                             pygame.time.wait(1000)
-                        if (dealer_hand.get_value() >= player_hand.get_value() and dealer_hand.get_value() <= 21):
+                        if player_hand.get_value() <= dealer_hand.get_value() <= 21:
                             end_text = "Lose"
                             in_game = False
                             break
@@ -172,7 +176,8 @@ def main():
                             break
             if not in_game:
                 end_text = RESULTSFONT.render(end_text, True, 'green')
-                results_rect = pygame.Rect(WIDTH/2 - (end_text.get_width() + 50)/2, HEIGHT/2 - end_text.get_height()/2, end_text.get_width() + 50, end_text.get_height())
+                results_rect = pygame.Rect(WIDTH/2 - (end_text.get_width() + 50)/2, HEIGHT/2 - end_text.get_height()/2,
+                                           end_text.get_width() + 50, end_text.get_height())
                 pygame.draw.rect(WIN, (180, 180, 180), results_rect)
                 WIN.blit(end_text, (WIDTH/2 - end_text.get_width()/2, HEIGHT/2 - end_text.get_height()/2))
                 pygame.display.update()
