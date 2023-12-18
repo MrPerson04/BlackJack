@@ -83,23 +83,29 @@ def main():
                             # auto win game
                             print("win")
                             run = False
+                            pygame.time.wait(1000)
                             break
                         elif player_hand.get_value() > 21:
                             # auto lose game
                             print("lose")
                             run = False
+                            pygame.time.wait(1000)
                             break
                 elif stay_button.collidepoint(x, y) and deck.is_flipped():
                         deck.set_clickable(False)
                         while(dealer_hand.get_value() < 17):
                             dealer_hand.hit(deck)
+                            draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stay_button)
+                            pygame.time.wait(1000)
                         if(dealer_hand.get_value() >= player_hand.get_value() and dealer_hand.get_value() <= 21):
                             print("lose")
                             run = False
+                            pygame.time.wait(1000)
                             break
                         else:
                             print("win")
                             run = False
+                            pygame.time.wait(1000)
                             break
 
         draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stay_button)
