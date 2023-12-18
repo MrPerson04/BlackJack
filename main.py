@@ -15,7 +15,7 @@ BG = pygame.transform.scale(pygame.image.load("background.jpg"), (WIDTH, HEIGHT)
 FONT = pygame.font.SysFont("timesnewroman", 30)
 
 
-def draw(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stay_button):
+def draw(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stand_button, stand):
     WIN.blit(BG, (0, 0))
 
     time_text = FONT.render(f"Time: {round(elapsed_time)}s", 1, "white")
@@ -27,8 +27,13 @@ def draw(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stay_b
     WIN.blit(deck_image, deck_rect)
 
     if flipped_deck:
-        dealer_text = FONT.render(str(dealer_hand), 1, "white")
-        dealer_value_text = FONT.render("Value: " + str(dealer_hand.get_value()), 1, "white")
+        if not stand:
+            dealer_text = FONT.render(str(dealer_hand._contents[0]) + ", ?", 1, "white")
+            dealer_value_text = FONT.render("Value: " + str(dealer_hand._contents[0].get_value()), 1, "white")
+        else:
+            dealer_text = FONT.render(str(dealer_hand), 1, "white")
+            dealer_value_text = FONT.render("Value: " + str(dealer_hand.get_value()), 1, "white")
+
         player_text = FONT.render(str(player_hand), 1, "white")
         player_value_text = FONT.render("Value: " + str(player_hand.get_value()), 1, "white")
         WIN.blit(dealer_text, (100, 50))
@@ -36,8 +41,8 @@ def draw(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stay_b
         WIN.blit(player_text, (100, 600))
         WIN.blit(player_value_text, (100, 650))
         stay_text = FONT.render('Stay', True, 'white')
-        pygame.draw.rect(WIN, (180, 180, 180), stay_button)
-        WIN.blit(stay_text, (stay_button.x + 23, stay_button.y+10))
+        pygame.draw.rect(WIN, (180, 180, 180), stand_button)
+        WIN.blit(stay_text, (stand_button.x + 23, stand_button.y + 10))
 
     pygame.display.update()
 
@@ -47,9 +52,8 @@ def main():
 
     clock = pygame.time.Clock()
     start_time = time.time()
-    elapsed_time = 0
 
-    stay_button = pygame.Rect(650, 400, 100, 60)
+    stand_button = pygame.Rect(650, 400, 100, 60)
 
     deck_image = pygame.image.load('deck.png').convert()
     deck_image = pygame.transform.scale(deck_image, (150, 250))
@@ -79,6 +83,7 @@ def main():
                         deck.set_flipped(True)
                     else:
                         player_hand.hit(deck)
+                        draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
                         if player_hand.get_value() == 21:
                             # auto win game
                             print("win")
@@ -91,11 +96,13 @@ def main():
                             run = False
                             pygame.time.wait(1000)
                             break
-                elif stay_button.collidepoint(x, y) and deck.is_flipped():
+                elif stand_button.collidepoint(x, y) and deck.is_flipped():
                         deck.set_clickable(False)
+                        draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, True)
+                        pygame.time.wait(1000)
                         while(dealer_hand.get_value() < 17):
                             dealer_hand.hit(deck)
-                            draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stay_button)
+                            draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, True)
                             pygame.time.wait(1000)
                         if(dealer_hand.get_value() >= player_hand.get_value() and dealer_hand.get_value() <= 21):
                             print("lose")
@@ -108,7 +115,7 @@ def main():
                             pygame.time.wait(1000)
                             break
 
-        draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stay_button)
+        draw(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
 
     pygame.quit()
 
