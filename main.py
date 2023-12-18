@@ -67,7 +67,7 @@ def draw_menu(play_button, quit_button):
 
 
 def main():
-    end_text = "Error"
+    end_text = "Quitting"
     run = True
 
     clock = pygame.time.Clock()
@@ -130,6 +130,14 @@ def main():
                     if deck_rect.collidepoint(x, y) and deck.is_clickable():
                         if not deck.is_flipped():
                             deck.set_flipped(True)
+                            # check for an immediate win
+                            if player_hand.get_value() == 21:
+                                # auto win game
+                                end_text = "Win"
+                                in_game = False
+                                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
+                                          stand_button, False)
+                                break
                         else:
                             player_hand.hit(deck)
                             draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
