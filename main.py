@@ -13,8 +13,8 @@ pygame.display.set_caption("BlackJack")
 BG = pygame.transform.scale(pygame.image.load("background.jpg"), (WIDTH, HEIGHT))
 
 FONT = pygame.font.SysFont("timesnewroman", 30)
+RESULTSFONT = pygame.font.SysFont("timesnewroman", 150)
 TITLEFONT = pygame.font.SysFont("timesnewroman", 80)
-
 
 
 def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, stand_button, stand):
@@ -48,11 +48,12 @@ def draw_game(elapsed_time, deck_rect, flipped_deck, player_hand, dealer_hand, s
 
     pygame.display.update()
 
+
 def draw_menu(play_button, quit_button):
     WIN.blit(BG, (0, 0))
 
     title_text = TITLEFONT.render("BlackJack", 1, "white")
-    WIN.blit(title_text, (WIDTH/2 - title_text.get_width()/2, 10))
+    WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 10))
 
     play_text = FONT.render('Play', True, 'white')
     pygame.draw.rect(WIN, (180, 180, 180), play_button)
@@ -64,16 +65,17 @@ def draw_menu(play_button, quit_button):
 
     pygame.display.update()
 
+
 def main():
+    end_text = "Error"
     run = True
 
     clock = pygame.time.Clock()
     start_time = time.time()
 
     stand_button = pygame.Rect(650, 400, 100, 60)
-    play_button = pygame.Rect(WIDTH/2 - 50, HEIGHT/2 - 100, 100, 60)
-    quit_button = pygame.Rect(WIDTH/2 - 50, HEIGHT/2, 100, 60)
-
+    play_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2 - 100, 100, 60)
+    quit_button = pygame.Rect(WIDTH / 2 - 50, HEIGHT / 2, 100, 60)
 
     deck_image = pygame.image.load('deck.png').convert()
     deck_image = pygame.transform.scale(deck_image, (150, 250))
@@ -113,7 +115,6 @@ def main():
         player_hand = Hand(deck)
         dealer_hand = Hand(deck)
 
-
         while in_game:
             clock.tick(60)
             elapsed_time = time.time() - start_time
@@ -131,39 +132,46 @@ def main():
                             deck.set_flipped(True)
                         else:
                             player_hand.hit(deck)
-                            draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
+                            draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
+                                      stand_button, False)
                             if player_hand.get_value() == 21:
                                 # auto win game
-                                print("win")
+                                end_text = "Win"
                                 in_game = False
-                                pygame.time.wait(1000)
                                 break
                             elif player_hand.get_value() > 21:
                                 # auto lose game
-                                print("lose")
+                                end_text = "Lose"
                                 in_game = False
-                                pygame.time.wait(1000)
                                 break
                     elif stand_button.collidepoint(x, y) and deck.is_flipped():
-                            deck.set_clickable(False)
-                            draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, True)
+                        deck.set_clickable(False)
+                        draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button,
+                                  True)
+                        pygame.time.wait(1000)
+                        while (dealer_hand.get_value() < 17):
+                            dealer_hand.hit(deck)
+                            draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand,
+                                      stand_button, True)
                             pygame.time.wait(1000)
-                            while(dealer_hand.get_value() < 17):
-                                dealer_hand.hit(deck)
-                                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, True)
-                                pygame.time.wait(1000)
-                            if(dealer_hand.get_value() >= player_hand.get_value() and dealer_hand.get_value() <= 21):
-                                print("lose")
-                                in_game = False
-                                pygame.time.wait(1000)
-                                break
-                            else:
-                                print("win")
-                                in_game = False
-                                pygame.time.wait(1000)
-                                break
-
-            draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
+                        if (dealer_hand.get_value() >= player_hand.get_value() and dealer_hand.get_value() <= 21):
+                            end_text = "Lose"
+                            in_game = False
+                            break
+                        else:
+                            end_text = "Win"
+                            in_game = False
+                            break
+            if not in_game:
+                end_text = RESULTSFONT.render(end_text, True, 'green')
+                results_rect = pygame.Rect(WIDTH/2 - (end_text.get_width() + 50)/2, HEIGHT/2 - end_text.get_height()/2, end_text.get_width() + 50, end_text.get_height())
+                pygame.draw.rect(WIN, (180, 180, 180), results_rect)
+                WIN.blit(end_text, (WIDTH/2 - end_text.get_width()/2, HEIGHT/2 - end_text.get_height()/2))
+                pygame.display.update()
+                pygame.time.wait(3000)
+                pygame.event.clear(pygame.MOUSEBUTTONDOWN)
+            else:
+                draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False)
 
     pygame.quit()
 
