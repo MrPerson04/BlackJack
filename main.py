@@ -1,5 +1,6 @@
 import pygame
 import time
+import pickle
 
 from Deck import Deck
 from Hand import Hand
@@ -105,6 +106,12 @@ def main():
     deck_rect.center = (WIDTH / 2, HEIGHT / 2)
 
     player_one = Player()
+
+    try:
+        with open("savegame", "rb") as f:
+            player_one.set_chips(pickle.load(f))
+    except (OSError, IOError) as e:
+        player_one.set_chips(50)
 
     while run:
         in_game = True
@@ -223,6 +230,9 @@ def main():
             else:
                 draw_game(elapsed_time, deck_rect, deck.is_flipped(), player_hand, dealer_hand, stand_button, False,
                           player_one, current_bet, add_bet_button, subtract_bet_button)
+
+    with open("savegame", "wb") as f:
+        pickle.dump(player_one.get_chips(), f)
 
     pygame.quit()
 

@@ -10,3 +10,6 @@ class Player:
 
     def gain_chips(self, chips: int):
         self._chips += chips
+
+    def set_chips(self, chips: int):
+        self._chips = chips
