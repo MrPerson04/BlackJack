@@ -148,6 +148,8 @@ def main():
                 if event.type == pygame.QUIT:
                     run = False
                     in_game = False
+                    if deck.is_flipped():
+                        player_one.lose_chips(current_bet)
                     break
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     # Set the x, y positions of the mouse click
